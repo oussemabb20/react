@@ -2,21 +2,22 @@ import React from 'react'
 
 export  function Compoment() {
   const object = {name:'test',password:'test'}
-  const [name,password] = object 
+  const {name: userName, password: userPassword} = object 
 
-  arr = [1,2,3,4,5]
-  const [a,b,rest] = arr
-  arr.map(item=>{
-    if (item % 2 ==0){
-      return item
-    }
-  })
-  arr.filter(item=>item % 2 ==0)
-  arr.reduce((acc,curr)=>acc+curr,0)
+  const arr = [1,2,3,4,5]
+  const [a, b, ...rest] = arr
+  
+  // Exemples de map, filter, reduce (non utilisés dans le rendu)
+  const evensMap = arr.map(item => (item % 2 === 0 ? item : null))
+  const evensFilter = arr.filter(item => item % 2 === 0)
+  const sum = arr.reduce((acc, curr) => acc + curr, 0)
+  
   return (
     <>
     <div>
-      hello
+      <p>hello</p>
+      <p>User: {userName}</p>
+      <p>Sum: {sum}</p>
     </div>
     <Compoment2 />
     </>
