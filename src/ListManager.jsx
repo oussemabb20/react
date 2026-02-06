@@ -1,39 +1,77 @@
-import { useState } from 'react'
+import { useState, useCallback, memo } from 'react'
+import PropTypes from 'prop-types'
 import './ListManager.css'
 
+// Composant ListItem séparé et mémoïsé pour éviter les re-renders inutiles
+const ListItem = memo(function ListItem({ item, onDelete }) {
+  return (
+    <li className="list-item">
+      <span className="item-text">{item.text}</span>
+      <button 
+        className="delete-btn" 
+        onClick={() => onDelete(item.id)}
+        aria-label={`Supprimer ${item.text}`}
+      >
+        Supprimer
+      </button>
+    </li>
+  )
+})
+
+ListItem.propTypes = {
+  item: PropTypes.shape({
+    id: PropTypes.number.isRequired,
+    text: PropTypes.string.isRequired
+  }).isRequired,
+  onDelete: PropTypes.func.isRequired
+}
+
+// Générateur d'ID unique
+let nextId = 0
+const generateId = () => ++nextId
+
 function ListManager({ initialItems = [], placeholder = "Entrez un nouveau élément" }) {
-  const [items, setItems] = useState(initialItems)
+  // Initialisation avec des objets contenant id unique
+  const [items, setItems] = useState(() => 
+    initialItems.map(text => ({ id: generateId(), text }))
+  )
   const [inputValue, setInputValue] = useState('')
 
-  const handleAdd = (e) => {
+  // useCallback pour mémoriser les fonctions et éviter les re-renders
+  const handleAdd = useCallback((e) => {
     e.preventDefault()
-    if (inputValue.trim() !== '') {
-      setItems([...items, inputValue.trim()])
+    const trimmedValue = inputValue.trim()
+    if (trimmedValue) {
+      setItems(prevItems => [...prevItems, { id: generateId(), text: trimmedValue }])
       setInputValue('')
     }
-  }
+  }, [inputValue])
 
-  const handleDelete = (indexToDelete) => {
-    setItems(items.filter((_, index) => index !== indexToDelete))
-  }
+  const handleDelete = useCallback((idToDelete) => {
+    setItems(prevItems => prevItems.filter(item => item.id !== idToDelete))
+  }, [])
+
+  const handleInputChange = useCallback((e) => {
+    setInputValue(e.target.value)
+  }, [])
 
   return (
     <div className="list-container">
       <h1 className="list-title">Liste :</h1>
       
-      <ul className="list-items">
-        {items.map((item, index) => (
-          <li key={index} className="list-item">
-            <span className="item-text">{item}</span>
-            <button 
-              className="delete-btn" 
-              onClick={() => handleDelete(index)}
-            >
-              Supprimer
-            </button>
-          </li>
-        ))}
-      </ul>
+      {items.length === 0 ? (
+        <p className="empty-message">Aucun élément dans la liste</p>
+      ) : (
+        <ul className="list-items" aria-label="Liste des éléments">
+          {items.map(item => (
+            <ListItem 
+              key={item.id} 
+              item={item} 
+              onDelete={handleDelete}
+            />
+          ))}
+        </ul>
+      )}
 
       <form className="list-form" onSubmit={handleAdd}>
         <input
@@ -41,12 +79,24 @@ function ListManager({ initialItems = [], placeholder = "Entrez un nouveau élé
           className="list-input"
           placeholder={placeholder}
           value={inputValue}
-          onChange={(e) => setInputValue(e.target.value)}
+          onChange={handleInputChange}
+          aria-label="Nouvel élément"
         />
-        <button type="submit" className="add-btn">Ajouter</button>
+        <button 
+          type="submit" 
+          className="add-btn"
+          disabled={!inputValue.trim()}
+        >
+          Ajouter
+        </button>
       </form>
     </div>
   )
+}
+
+ListManager.propTypes = {
+  initialItems: PropTypes.arrayOf(PropTypes.string),
+  placeholder: PropTypes.string
 }
 
 export default ListManager

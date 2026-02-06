@@ -38,6 +38,12 @@
   font-weight: 500;
 }
 
+.empty-message {
+  color: #6b7280;
+  font-style: italic;
+  margin-bottom: 20px;
+}
+
 .delete-btn {
   background-color: #3b82f6;
   color: white;
@@ -85,4 +91,9 @@
 
 .add-btn:hover {
   background-color: #2563eb;
+}
+
+.add-btn:disabled {
+  background-color: #9ca3af;
+  cursor: not-allowed;
 }
